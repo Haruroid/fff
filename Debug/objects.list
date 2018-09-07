@@ -1,6 +1,8 @@
 "Drivers/ILI9488/Src/FONTX2.o"
+"Drivers/ILI9488/Src/HR2046.o"
 "Drivers/ILI9488/Src/ILI9488.o"
 "Drivers/ILI9488/Src/bitmap.o"
+"Drivers/ILI9488/Src/vkeyboard.o"
 "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.o"
 "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.o"
 "Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.o"

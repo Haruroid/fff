@@ -49,9 +49,6 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define TS_IRQ_Pin GPIO_PIN_0
-#define TS_IRQ_GPIO_Port GPIOC
-#define TS_IRQ_EXTI_IRQn EXTI0_IRQn
 #define SPI2_CS_Pin GPIO_PIN_1
 #define SPI2_CS_GPIO_Port GPIOC
 #define SPI1_CS_Pin GPIO_PIN_4

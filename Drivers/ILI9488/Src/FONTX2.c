@@ -10,6 +10,14 @@
 //				https://sakura87.net/archives/2671
 //				https://qiita.com/meketen/items/a66c6953b3cff380d9b8
 
+bool chk_zenkaku(uint8_t firstbyte) {
+	if ((firstbyte >= 0x80 && firstbyte <= 0x9F)
+			|| (firstbyte >= 0xe0 && firstbyte <= 0xfc))
+		return true;
+	else
+		return false;
+}
+
 void fx_writechar(uint16_t x, uint16_t y, uint8_t c, uint16_t color,
 		uint16_t bg, uint8_t *font) {
 	uint8_t fon_width = font[14];
@@ -20,7 +28,7 @@ void fx_writechar(uint16_t x, uint16_t y, uint8_t c, uint16_t color,
 
 		uint32_t offset = 17 + c * ((fon_width + 7) / 8) * fon_height;
 		for (uint8_t for_y = 0; for_y < fon_height; for_y++) {
-			uint8_t line = font[offset + fon_height - for_y];
+			uint8_t line = font[offset + for_y];
 			for (uint8_t for_x = (fon_width > 8) ? 7 : fon_width - 1; for_x > 0;
 					for_x--, line >>= 1) {
 				if (line & 1)
@@ -47,7 +55,7 @@ void fx_writecharFF(uint16_t x, uint16_t y, uint16_t c, uint16_t color,
 		f_lseek(font, offset);
 		f_read(font, fxbuf, fon_width * fon_height, &br);
 		for (uint8_t for_y = 0; for_y < fon_height; for_y++) {
-			uint8_t line = fxbuf[fon_height - for_y];
+			uint8_t line = fxbuf[for_y];
 			for (uint8_t for_x = (fon_width > 8) ? 7 : fon_width - 1; for_x > 0;
 					for_x--, line >>= 1) {
 				if (line & 1)
@@ -83,7 +91,7 @@ void fx_writecharFF(uint16_t x, uint16_t y, uint16_t c, uint16_t color,
 			fx = fon_width;
 			uint8_t xb = width_byte;
 			while (xb--) {
-				uint8_t line = fxbuf[(fon_height - fy - 1) * width_byte + xb];
+				uint8_t line = fxbuf[fy * width_byte + xb];
 				uint8_t fxx;
 				if ((fx % 8) != 0) {
 					fxx = fx % 8;
@@ -110,25 +118,31 @@ void fx_writestrFF(uint16_t x, uint16_t y, char *str, uint16_t color,
 	uint8_t len = strlen(str);
 	uint16_t pointer = 0;
 	while (len--)
-		if ((str[pointer] >= 0x80 && str[pointer] <= 0x9F)
-				|| (str[pointer] >= 0xe0 && str[pointer] <= 0xfc)) {
-			if (f_open(&font, ZENKAKU_FONT, FA_READ | FA_OPEN_EXISTING)
-					!= FR_OK)
-				return;
+		if (chk_zenkaku(str[pointer])) {
+			if (pointer < 2 || !chk_zenkaku(str[pointer - 2])) {
+				if (f_open(&font, ZENKAKU_FONT, FA_READ | FA_OPEN_EXISTING)
+						!= FR_OK)
+					return;
+			}
 			fx_writecharFF(x, y, str[pointer] << 8 | str[pointer + 1], color,
 					bg, &font);
-			f_close(&font);
+			if (pointer + 2 > strlen(str) || !chk_zenkaku(str[pointer + 2]))
+				f_close(&font);
 			pointer += 2;
 			x += ZENKAKU_WIDTH + 1;
 			len--;
 		} else {
-			if (f_open(&font, HANKAKU_FONT, FA_READ | FA_OPEN_EXISTING)
-					!= FR_OK)
-				return;
+			if (pointer < 2 || chk_zenkaku(str[pointer - 2])) {
+				if (f_open(&font, HANKAKU_FONT, FA_READ | FA_OPEN_EXISTING)
+						!= FR_OK)
+					return;
+			}
 			fx_writecharFF(x, y, str[pointer], color, bg, &font);
-			f_close(&font);
+			if(pointer + 1 > strlen(str) || chk_zenkaku(str[pointer + 1]))
+				f_close(&font);
 			pointer += 1;
 			x += HANKAKU_WIDTH + 1;
 		}
+	f_close(&font);
 }
 #endif

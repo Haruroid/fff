@@ -14,6 +14,11 @@ void ILI9488_writeData(uint16_t data) {
 	LCD_DATA = data;
 }
 
+uint16_t ILI9488_readData(){
+	uint16_t tmp = LCD_DATA;
+	return tmp;
+}
+
 void ILI9488_setArea(uint16_t x, uint16_t y, uint16_t x1, uint16_t y1) {
 	ILI9488_writeCmd(0x2A);
 	ILI9488_writeData((y >> 8));
@@ -30,15 +35,31 @@ void ILI9488_setArea(uint16_t x, uint16_t y, uint16_t x1, uint16_t y1) {
 	ILI9488_writeCmd(0x2C);
 }
 
-void ILI9488_sendColor(uint16_t rgb565){
-	//RGB565 to BGR565
-	ILI9488_writeData(((rgb565 & 0b0000011111111111) | (rgb565 & 0b0000000000011111) << 11) >> 8);
-	ILI9488_writeData(((rgb565 & 0b1111111111100000) | (rgb565 & 0b1111100000000000) >> 11 ) & 0x00FF);
+void ILI9488_readArea(uint16_t x, uint16_t y, uint16_t x1, uint16_t y1) {
+	ILI9488_writeCmd(0x2A);
+	ILI9488_writeData((y >> 8));
+	ILI9488_writeData((y & 0x00FF));
+	ILI9488_writeData((y1 >> 8));
+	ILI9488_writeData((y1 & 0x00FF));
+
+	ILI9488_writeCmd(0x2B);
+	ILI9488_writeData((x >> 8));
+	ILI9488_writeData((x & 0x00FF));
+	ILI9488_writeData((x1 >> 8));
+	ILI9488_writeData((x1 & 0x00FF));
+
+	ILI9488_writeCmd(0x2E);
+	ILI9488_readData();
+}
+
+void ILI9488_sendColor(uint16_t rgb565) {
+	ILI9488_writeData(rgb565>>8);
+	ILI9488_writeData(rgb565 & 0x00FF);
 }
 
 void ILI9488_drawRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
 		uint16_t color) {
-	ILI9488_setArea(x, y, x + width , y + height);
+	ILI9488_setArea(x, y, x + width, y + height);
 	for (int i = 0; i < width * height; i++)
 		ILI9488_sendColor(color);
 }
@@ -52,38 +73,18 @@ void ILI9488_fillRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
 	for (int i = x; i < x + width; i++)
 		for (int j = y; j < y + height; j++) {
 			ILI9488_drawDot(i, j, color);
-//			HAL_Delay(1);
 		}
 }
 
 void ILI9488_putc(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg) {
 	for (int8_t i = 0; i < 5; i++) { // Char bitmap = 5 columns
 		uint8_t line = font[c * 5 + i];
-		(line & 0x01) ?
-				ILI9488_drawDot(x + i, y + 7, color) :
-				ILI9488_drawDot(x + i, y + 7, bg);
-		(line & 0x02) ?
-				ILI9488_drawDot(x + i, y + 6, color) :
-				ILI9488_drawDot(x + i, y + 6, bg);
-		(line & 0x04) ?
-				ILI9488_drawDot(x + i, y + 5, color) :
-				ILI9488_drawDot(x + i, y + 5, bg);
-		(line & 0x08) ?
-				ILI9488_drawDot(x + i, y + 4, color) :
-				ILI9488_drawDot(x + i, y + 4, bg);
-		(line & 0x10) ?
-				ILI9488_drawDot(x + i, y + 3, color) :
-				ILI9488_drawDot(x + i, y + 3, bg);
-		(line & 0x20) ?
-				ILI9488_drawDot(x + i, y + 2, color) :
-				ILI9488_drawDot(x + i, y + 2, bg);
-		(line & 0x40) ?
-				ILI9488_drawDot(x + i, y + 1, color) :
-				ILI9488_drawDot(x + i, y + 1, bg);
-		(line & 0x80) ?
-				ILI9488_drawDot(x + i, y + 0, color) :
-				ILI9488_drawDot(x + i, y + 0, bg);
-		//}
+		for (uint8_t rep = 0; rep < 8; rep++) {
+			(line & 0x01) ?
+					ILI9488_drawDot(x + i, y + rep, color) :
+					ILI9488_drawDot(x + i, y + rep, bg);
+			line >>= 1;
+		}
 	}
 }
 
@@ -91,14 +92,11 @@ void ILI9488_putc_f(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg)
 	ILI9488_setArea(x, y, x + 4, y + 6);
 	for (int i = 0; i < 5; i++) { // Char bitmap = 5 columns
 		uint8_t line = font[c * 5 + i];
-		ILI9488_sendColor((line & 0x80) ? color : bg);
-		ILI9488_sendColor((line & 0x40) ? color : bg);
-		ILI9488_sendColor((line & 0x20) ? color : bg);
-		ILI9488_sendColor((line & 0x10) ? color : bg);
-		ILI9488_sendColor((line & 0x08) ? color : bg);
-		ILI9488_sendColor((line & 0x04) ? color : bg);
-		ILI9488_sendColor((line & 0x02) ? color : bg);
-		ILI9488_sendColor((line & 0x01) ? color : bg);
+		uint8_t rep = 8;
+		while (rep--) {
+			ILI9488_sendColor((line & 0x80) ? color : bg);
+			line <<= 1;
+		}
 	}
 }
 
@@ -113,6 +111,19 @@ void ILI9488_puts_f(uint16_t x, uint16_t y, uint16_t color, uint16_t bg,
 		char* str) {
 	for (int i = 0; i < strlen(str); i++) {
 		ILI9488_putc_f(x + i * 6, y, str[i], color, bg);
+	}
+}
+
+void ILI9488_readGRAM(uint16_t x,uint16_t y,uint16_t width,uint16_t height,uint16_t* rgb565){
+	ILI9488_readArea(x,y,x + width,y + height);
+	uint16_t tmp[2];
+	for(uint16_t rep = 0;rep < width * height; rep++){
+		tmp[0] = ILI9488_readData(); //b*5 + g*3
+		tmp[1] = ILI9488_readData(); //g*3 + r*5
+		char s[255];
+		sprintf(s,"[0]:%04x [1]:%04x",tmp[0],tmp[1]);
+		ILI9488_puts(200,0,0x0000,0xffff,s);
+		rgb565[rep] = (tmp[0] & 0b0000000011111000) >> 3 | (tmp[0] & 0b0000000000000111) << 8 | (tmp[1] & 0b0000000000011111) << 11 | (tmp[1] & 0b0000000011100000) << 3;
 	}
 }
 
@@ -169,7 +180,8 @@ void ILI9488_init() {
 	ILI9488_writeData(0x80);
 
 	ILI9488_writeCmd(0x36);
-	ILI9488_writeData(0x00);
+	ILI9488_writeData(0b01001000);
+//	ILI9488_writeData(0x00);
 
 	ILI9488_writeCmd(0x3A); /* Color Pixel Format */
 	ILI9488_writeData(0x05);

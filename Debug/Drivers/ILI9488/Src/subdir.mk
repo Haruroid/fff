@@ -5,18 +5,24 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Drivers/ILI9488/Src/FONTX2.c \
+../Drivers/ILI9488/Src/HR2046.c \
 ../Drivers/ILI9488/Src/ILI9488.c \
-../Drivers/ILI9488/Src/bitmap.c 
+../Drivers/ILI9488/Src/bitmap.c \
+../Drivers/ILI9488/Src/vkeyboard.c 
 
 OBJS += \
 ./Drivers/ILI9488/Src/FONTX2.o \
+./Drivers/ILI9488/Src/HR2046.o \
 ./Drivers/ILI9488/Src/ILI9488.o \
-./Drivers/ILI9488/Src/bitmap.o 
+./Drivers/ILI9488/Src/bitmap.o \
+./Drivers/ILI9488/Src/vkeyboard.o 
 
 C_DEPS += \
 ./Drivers/ILI9488/Src/FONTX2.d \
+./Drivers/ILI9488/Src/HR2046.d \
 ./Drivers/ILI9488/Src/ILI9488.d \
-./Drivers/ILI9488/Src/bitmap.d 
+./Drivers/ILI9488/Src/bitmap.d \
+./Drivers/ILI9488/Src/vkeyboard.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

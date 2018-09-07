@@ -26,12 +26,12 @@ void drawBitmap(uint16_t x, uint16_t y, uint8_t* bitmap) {
 	if (width > X_MAX || height > Y_MAX)
 		return;
 	uint32_t pointer = 0;
-	for (uint32_t for_y = y; for_y < y + height; for_y++) {
+	for (uint32_t for_y = 0; for_y < height; for_y++) {
 		for (uint32_t for_x = x; for_x < x + width; for_x++) {
 			uint8_t B = bitmap[offset + pointer * 3];
 			uint8_t G = bitmap[offset + pointer * 3 + 1];
 			uint8_t R = bitmap[offset + pointer * 3 + 2];
-			Bitmap_drawDot(for_x, for_y, RGB565(R,G,B));
+			Bitmap_drawDot(for_x, y + height - for_y, RGB565(R,G,B));
 			if (for_x - x == width && (width % 4) != 0)
 				pointer = +(width % 4);
 			else
@@ -44,7 +44,7 @@ void drawBitmap(uint16_t x, uint16_t y, uint8_t* bitmap) {
 void drawBitmapFF(uint16_t x, uint16_t y, FIL *bmp) {
 	uint8_t bmpbuf[BMP_BUF];
 	UINT bw;
-	f_lseek(bmp,0);
+	f_lseek(bmp, 0);
 	f_read(bmp, bmpbuf, BMP_BUF, &bw);
 	if (bmpbuf[0] != 'B' || bmpbuf[1] != 'M') //check BM header
 		return;
@@ -57,7 +57,8 @@ void drawBitmapFF(uint16_t x, uint16_t y, FIL *bmp) {
 	if (READ32(bmpbuf, 30) != 0) //check compression
 		return;
 
-	uint32_t imgsize, offset, width, height, pointer, bufcnt, cnt_x, gcounter;
+	uint32_t imgsize, offset, width, height, pointer, bufcnt, gcounter;
+	uint16_t cnt_x, cnt_y;
 	offset = READ32(bmpbuf, 10);
 	imgsize = READ32(bmpbuf,2) - offset;
 	width = abs(READ32(bmpbuf, 18));
@@ -66,6 +67,7 @@ void drawBitmapFF(uint16_t x, uint16_t y, FIL *bmp) {
 		return;
 	bufcnt = imgsize / BMP_BUF;
 	cnt_x = 0;
+	cnt_y = 0;
 	gcounter = 0;
 	uint8_t bmp_R = 0;
 	uint8_t bmp_G = 0;
@@ -88,14 +90,14 @@ void drawBitmapFF(uint16_t x, uint16_t y, FIL *bmp) {
 				break;
 			case 2:
 				bmp_R = bmpbuf[pointer];
-				Bitmap_drawDot(cnt_x + x, y, RGB565(bmp_R,bmp_G,bmp_B));
+				Bitmap_drawDot(cnt_x + x, y + height - cnt_y, RGB565(bmp_R,bmp_G,bmp_B));
 				if (cnt_x == width - 1) {
 					if ((width % 4) != 0)
 						pointer += (width % 4);
 					else
 						pointer++;
 					cnt_x = 0;
-					y++;
+					cnt_y++;
 				} else {
 					pointer++;
 					cnt_x++;

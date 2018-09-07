@@ -33,6 +33,7 @@ static const uint16_t LCD_Y = 320;
 void ILI9488_writeCmd(uint16_t cmd);
 void ILI9488_writeData(uint16_t data);
 void ILI9488_setArea(uint16_t x, uint16_t y, uint16_t x1, uint16_t y1);
+void ILI9488_readArea(uint16_t x, uint16_t y, uint16_t x1, uint16_t y1);
 void ILI9488_sendColor(uint16_t rgb565);
 void ILI9488_drawRect(uint16_t x, uint16_t y, uint16_t width, uint16_t height,uint16_t color);
 void ILI9488_drawDot(uint16_t x,uint16_t y,uint16_t color);
@@ -41,6 +42,7 @@ void ILI9488_putc(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg);
 void ILI9488_putc_f(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg);
 void ILI9488_puts(uint16_t x, uint16_t y, uint16_t color,uint16_t bg, char* str);
 void ILI9488_puts_f(uint16_t x, uint16_t y, uint16_t color,uint16_t bg, char* str);
+void ILI9488_readGRAM(uint16_t x,uint16_t y,uint16_t width,uint16_t height,uint16_t* rgb565);
 void ILI9488_init();
 
 #endif /* ILI9488_H_ */
