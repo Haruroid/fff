@@ -33,7 +33,7 @@ void drawBitmap(uint16_t x, uint16_t y, uint8_t* bitmap) {
 			uint8_t R = bitmap[offset + pointer * 3 + 2];
 			Bitmap_drawDot(for_x, y + height - for_y, RGB565(R,G,B));
 			if (for_x - x == width && (width % 4) != 0)
-				pointer = +(width % 4);
+				pointer = +(width % 4) + 1;
 			else
 				pointer += 1;
 		}
@@ -93,7 +93,7 @@ void drawBitmapFF(uint16_t x, uint16_t y, FIL *bmp) {
 				Bitmap_drawDot(cnt_x + x, y + height - cnt_y, RGB565(bmp_R,bmp_G,bmp_B));
 				if (cnt_x == width - 1) {
 					if ((width % 4) != 0)
-						pointer += (width % 4);
+						pointer += (width % 4) + 1;
 					else
 						pointer++;
 					cnt_x = 0;
